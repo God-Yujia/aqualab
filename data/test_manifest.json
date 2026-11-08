@@ -1,0 +1,2109 @@
+{
+  "version": 1,
+  "frozen_on": "2026-11-08",
+  "dataset_usage": "Academic, non-commercial use; dataset redistribution is prohibited by its official source.",
+  "protocol": {
+    "checkpoint": {
+      "path": "weights/wwe_uie_uieb.pth",
+      "sha256": "36c3e59e556ed69a31e3f83ae7e15b86409eeb951de049ebc2207728c210027d",
+      "revision": "fd0697558203f9f849800cc13b804116bb3f921c"
+    },
+    "preprocessing": {
+      "max_side": 768,
+      "apply_exif_orientation": true,
+      "color_mode": "RGB",
+      "resampling": "Lanczos",
+      "preserve_aspect_ratio": true,
+      "metric_image": "exported 8-bit RGB at processing dimensions"
+    },
+    "local_control": {
+      "range_knee": 0.9,
+      "closing_kernel_size": 3,
+      "guide_radius": 3,
+      "guide_epsilon": 0.001
+    },
+    "traditional": {
+      "white_balance": "Gray World",
+      "clahe_channel": "Lab L",
+      "clahe_clip_limit": 2.0,
+      "clahe_tile_grid": [
+        8,
+        8
+      ]
+    },
+    "methods": [
+      {
+        "id": "traditional",
+        "method": "traditional"
+      },
+      {
+        "id": "clip",
+        "method": "clip"
+      },
+      {
+        "id": "fixed_080",
+        "method": "fixed",
+        "strength": 0.8
+      },
+      {
+        "id": "local",
+        "method": "local",
+        "strength": 1.0,
+        "smoothing": true
+      },
+      {
+        "id": "normalize",
+        "method": "normalize"
+      },
+      {
+        "id": "local_no_smoothing",
+        "method": "local",
+        "strength": 1.0,
+        "smoothing": false
+      }
+    ],
+    "metrics": {
+      "paired": [
+        "psnr_rgb",
+        "ssim_rgb"
+      ],
+      "unpaired": [
+        "uciqe_lab"
+      ],
+      "both": [
+        "rgb_endpoint_255_pct",
+        "rgb_endpoint_0_pct",
+        "model_forward_ms",
+        "processing_ms"
+      ],
+      "psnr_rgb": {
+        "data_range": 255,
+        "aggregation": "per-image then arithmetic mean within subset"
+      },
+      "ssim_rgb": {
+        "data_range": 255,
+        "channel_axis": -1,
+        "win_size": 11,
+        "gaussian_weights": true,
+        "sigma": 1.5,
+        "use_sample_covariance": false
+      },
+      "uciqe_lab": {
+        "illuminant": "D65",
+        "observer": "2",
+        "lab_scale": 100.0,
+        "chroma": "hypot(a,b)",
+        "chroma_std_ddof": 0,
+        "lightness_contrast": "mean of largest k minus mean of smallest k, k=max(1,floor(N*0.01))",
+        "saturation": "C/L for L>0, otherwise 0",
+        "coefficients": [
+          0.468,
+          0.2745,
+          0.2576
+        ]
+      },
+      "endpoint_definition": "percentage of pixels with at least one RGB channel equal to the given 8-bit endpoint"
+    },
+    "timing": {
+      "batch_size": 1,
+      "model_warmup_passes": 2,
+      "synchronize_cuda_for_timing": true,
+      "processing_end": "8-bit RGB result before PNG encoding"
+    },
+    "interface": {
+      "default_strength": 1.0,
+      "calibration_subset": "uieb_paired",
+      "pair_count": 40,
+      "candidates": [0.6, 0.8, 1.0],
+      "selection_rule": "Highest mean SSIM, then mean PSNR, then lower strength.",
+      "mean_ssim_rgb": 0.9106838575884416,
+      "mean_psnr_rgb": 23.322628059279182,
+      "evaluation_manifest_sha256": "0f510d1ea116d50c76b0c56b8f7a118f18826cfc78d82e1d00630891d37486a4"
+    }
+  },
+  "tagging": {
+    "measurement_image": "RGB8 at frozen processing dimensions",
+    "luma_proxy_weights": [
+      0.2126,
+      0.7152,
+      0.0722
+    ],
+    "blue_cast": "mean(B)-mean(R) >= 15 and mean(B)-mean(G) >= 5",
+    "green_cast": "mean(G)-mean(R) >= 15 and mean(G)-mean(B) >= 5",
+    "low_light": "median(luma) < 64",
+    "highlights": "at least 1% of luma values >= 235",
+    "other": "none of the above",
+    "multiple_tags_allowed": true
+  },
+  "separation_checks": {
+    "excluded_dev_count": 10,
+    "excluded_workflow_count": 1,
+    "same_number_c60_vs_upstream_paired_reviewed": 11,
+    "same_number_reviewed_as_different_scenes": true,
+    "cross_list_input_sha256_duplicates": 0,
+    "thumbnail_near_match_screen": {
+      "dhash_max_hamming": 6,
+      "rgb64_max_mean_abs_8bit": 20,
+      "candidates_found": 0
+    }
+  },
+  "subsets": {
+    "uieb_paired": {
+      "reference_images": true,
+      "source_page": "https://github.com/chingheng0808/WWE-UIE/tree/fd0697558203f9f849800cc13b804116bb3f921c#dataset-preparation",
+      "official_archive": "https://drive.google.com/file/d/1ceeWdqRdiIortVTSH0UNTZamHdMsZ3aA/view",
+      "source_dataset": "UIEB",
+      "upstream_split_counts": {
+        "train": 712,
+        "validation": 89,
+        "test": 89
+      },
+      "selection": {
+        "scope": "UIEB/test/input and UIEB/test/GT from the authors’ published split",
+        "method": "seeded permutation of sorted candidates, first 40 with matching oriented dimensions and no exact C60 duplicate",
+        "seed": 20261108,
+        "candidate_count": 88,
+        "excluded_same_c60_id": [
+          "605_img_.png"
+        ],
+        "skipped": [],
+        "input_name_overlap_with_train_validation": 0,
+        "zip_crc_and_length_overlap_with_train_validation": 0
+      },
+      "count": 40,
+      "files": [
+        {
+          "id": "uieb_paired/116_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/116_img_.png",
+            "archive_member": "UIEB/test/input/116_img_.png",
+            "sha256": "f5c49433ff296d21b8b0ff78485826fc60bc041093133ea06cf362f4d548dac3"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/116_img_.png",
+            "archive_member": "UIEB/test/GT/116_img_.png",
+            "sha256": "62fca62be716b6a3f47460a1dcb6af1faec9aef0c5935f3016e9313d4a97d3f0"
+          },
+          "input_size": [
+            1024,
+            709
+          ],
+          "processing_size": [
+            768,
+            532
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_paired/12290",
+          "input": {
+            "path": "data/test/uieb_paired/input/12290.png",
+            "archive_member": "UIEB/test/input/12290.png",
+            "sha256": "3df9cea025c8115da9e297f2d531e2956ac4c0c8db8105146495dc81b601b5c9"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/12290.png",
+            "archive_member": "UIEB/test/GT/12290.png",
+            "sha256": "1a53732de095e73c9a6d49b9ead2dee03c5de0e60ab2cdede7e00910861d0077"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_paired/137_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/137_img_.png",
+            "archive_member": "UIEB/test/input/137_img_.png",
+            "sha256": "a1b9ade4f702a7a4614917f0769009b4576babf69e96fdd521a52770db0f01f2"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/137_img_.png",
+            "archive_member": "UIEB/test/GT/137_img_.png",
+            "sha256": "95553bbfbea2809cdf41497cce52a7411c6ec15ef704ddcb249ca301aa52e1b1"
+          },
+          "input_size": [
+            640,
+            480
+          ],
+          "processing_size": [
+            640,
+            480
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/15045",
+          "input": {
+            "path": "data/test/uieb_paired/input/15045.png",
+            "archive_member": "UIEB/test/input/15045.png",
+            "sha256": "2a0fe4632e696f30d07d73f9d9fa03690e5a9a5938241c2051e6b9f7203a40c7"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/15045.png",
+            "archive_member": "UIEB/test/GT/15045.png",
+            "sha256": "f102b8e480d1893fd11d3348bcf5f04e73d22c17db38c48988b9203dc51a0815"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/15426",
+          "input": {
+            "path": "data/test/uieb_paired/input/15426.png",
+            "archive_member": "UIEB/test/input/15426.png",
+            "sha256": "32a3b9fe65a899c7b970952e5f57018f5fc7a478fa36583ec5474186866818ed"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/15426.png",
+            "archive_member": "UIEB/test/GT/15426.png",
+            "sha256": "a4a8c062f3da63c278fa0cf0d0d232db013741c43a042ada591173c89c2ee7d2"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/159_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/159_img_.png",
+            "archive_member": "UIEB/test/input/159_img_.png",
+            "sha256": "0f2dbc47d7486111ea19f566120d8d3abf56c0081a83725dc9a2211477e20a39"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/159_img_.png",
+            "archive_member": "UIEB/test/GT/159_img_.png",
+            "sha256": "9e3aabbf5ff2e0ce303233bc5ed58590668234e722bc5729ce7f7df380412405"
+          },
+          "input_size": [
+            640,
+            480
+          ],
+          "processing_size": [
+            640,
+            480
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/292_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/292_img_.png",
+            "archive_member": "UIEB/test/input/292_img_.png",
+            "sha256": "fd01a784950b2c842145bd11c461b17d5321de2d2e09ca1351b39c2e97cec3c4"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/292_img_.png",
+            "archive_member": "UIEB/test/GT/292_img_.png",
+            "sha256": "648a467aeef3327fe44440494da084911a9c27e071042fe9eca0edf56bf9288c"
+          },
+          "input_size": [
+            259,
+            194
+          ],
+          "processing_size": [
+            259,
+            194
+          ],
+          "tags": [
+            "green_cast",
+            "highlights"
+          ]
+        },
+        {
+          "id": "uieb_paired/316_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/316_img_.png",
+            "archive_member": "UIEB/test/input/316_img_.png",
+            "sha256": "d1335312766b89448e182ff43e55917246f85e77327cd9246db419501685bfec"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/316_img_.png",
+            "archive_member": "UIEB/test/GT/316_img_.png",
+            "sha256": "e7c8e98d4e06223cacc24ebf120306c91444128591e13c97eb599fd47a56c9c1"
+          },
+          "input_size": [
+            275,
+            183
+          ],
+          "processing_size": [
+            275,
+            183
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/345_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/345_img_.png",
+            "archive_member": "UIEB/test/input/345_img_.png",
+            "sha256": "cc7d3cc4037498887f5e7f6a2b036afaabcb26b9523b94f5edc92014e7129a1a"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/345_img_.png",
+            "archive_member": "UIEB/test/GT/345_img_.png",
+            "sha256": "5dff6a6d6b090194c90f873d2645e6b1df134ef704204c495e87a8e107de1570"
+          },
+          "input_size": [
+            1280,
+            803
+          ],
+          "processing_size": [
+            768,
+            482
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/367_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/367_img_.png",
+            "archive_member": "UIEB/test/input/367_img_.png",
+            "sha256": "bcc4cb3d21f5ac9eb80925c1639a1c5b08a40d845eaa636a0fede6e5b945eb21"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/367_img_.png",
+            "archive_member": "UIEB/test/GT/367_img_.png",
+            "sha256": "f7fa11487380f66f6e69449a32fc897491b9ff65cbbd6d33b983598c9722a1e9"
+          },
+          "input_size": [
+            259,
+            194
+          ],
+          "processing_size": [
+            259,
+            194
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_paired/373_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/373_img_.png",
+            "archive_member": "UIEB/test/input/373_img_.png",
+            "sha256": "c937a0cb718b40c0f18d11c771e4e2276ba422eafe154b68ffeea36b39cc6581"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/373_img_.png",
+            "archive_member": "UIEB/test/GT/373_img_.png",
+            "sha256": "bd744cf700c4e655338ecf5efac0206fa90948192dc24d05b29ec0f3f3d24016"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/411_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/411_img_.png",
+            "archive_member": "UIEB/test/input/411_img_.png",
+            "sha256": "e092b256dc487634e4e6e1ddfff9dbfddea78418c2fa233337fc040a42fa61c3"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/411_img_.png",
+            "archive_member": "UIEB/test/GT/411_img_.png",
+            "sha256": "e67297fa85e5eee956d810466ee75dd8101afb31ed33831df2c3e85987c72817"
+          },
+          "input_size": [
+            1200,
+            750
+          ],
+          "processing_size": [
+            768,
+            480
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/451_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/451_img_.png",
+            "archive_member": "UIEB/test/input/451_img_.png",
+            "sha256": "3e56f796fd75eee3fe3bceee91c3e1b72eb4b93ce5964d9d97d450befdbc17f6"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/451_img_.png",
+            "archive_member": "UIEB/test/GT/451_img_.png",
+            "sha256": "688d8f49acafb9bcc93aca61c004a54db83018008fec24fa8bf0b86ccbf6a511"
+          },
+          "input_size": [
+            610,
+            305
+          ],
+          "processing_size": [
+            610,
+            305
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/465_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/465_img_.png",
+            "archive_member": "UIEB/test/input/465_img_.png",
+            "sha256": "29862612057f543729b0f303e54b638978542770c09893e6c58e45b7c91e4f32"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/465_img_.png",
+            "archive_member": "UIEB/test/GT/465_img_.png",
+            "sha256": "f0d2d22fd0b921e859dec93f3fe3f56dd5f0874e2e77bd88efe4f12e9d0390b8"
+          },
+          "input_size": [
+            1024,
+            682
+          ],
+          "processing_size": [
+            768,
+            512
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/481_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/481_img_.png",
+            "archive_member": "UIEB/test/input/481_img_.png",
+            "sha256": "f72c5940fb762aa6a8b6e20d0ba804b14796dcd0b4c866dbf5ee369bef88bd1c"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/481_img_.png",
+            "archive_member": "UIEB/test/GT/481_img_.png",
+            "sha256": "4078780ebfeccddcbcfe6c39a07b94243d696733add9d26e5b68a5ae139c43f3"
+          },
+          "input_size": [
+            690,
+            408
+          ],
+          "processing_size": [
+            690,
+            408
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/486_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/486_img_.png",
+            "archive_member": "UIEB/test/input/486_img_.png",
+            "sha256": "5e4834ab12e7102e1e2b3af08372e20cc51d9cedb3bbdf189ff560320ade633b"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/486_img_.png",
+            "archive_member": "UIEB/test/GT/486_img_.png",
+            "sha256": "6dfc350103100b5fdcd9ff3d709ec2a58410850823449d3baa6fbcce47c47f32"
+          },
+          "input_size": [
+            780,
+            585
+          ],
+          "processing_size": [
+            768,
+            576
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/513_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/513_img_.png",
+            "archive_member": "UIEB/test/input/513_img_.png",
+            "sha256": "b2c41b7e96d2cbe3d7402f54170246c141e2f7ad381703326c39e01eeef98ec5"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/513_img_.png",
+            "archive_member": "UIEB/test/GT/513_img_.png",
+            "sha256": "9e1098be31682f0050340a0b26187a33deface4792f6160f6813b256fc2225cf"
+          },
+          "input_size": [
+            1200,
+            810
+          ],
+          "processing_size": [
+            768,
+            518
+          ],
+          "tags": [
+            "highlights"
+          ]
+        },
+        {
+          "id": "uieb_paired/537_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/537_img_.png",
+            "archive_member": "UIEB/test/input/537_img_.png",
+            "sha256": "b7a90223515651b981eff380e380a948387dd57a2c64c0203823a061e576ceb6"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/537_img_.png",
+            "archive_member": "UIEB/test/GT/537_img_.png",
+            "sha256": "048eeab2f298c56a6a5acb72d808879878c6d03ad29d40a2ed78f73e71c35313"
+          },
+          "input_size": [
+            500,
+            333
+          ],
+          "processing_size": [
+            500,
+            333
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/568_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/568_img_.png",
+            "archive_member": "UIEB/test/input/568_img_.png",
+            "sha256": "7976e215e9d28b65c453c985f364d0ca49a53b14ce997f7c9775ce1a6aa82c51"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/568_img_.png",
+            "archive_member": "UIEB/test/GT/568_img_.png",
+            "sha256": "e14ecf52469b60457cc48c270fdf3505c637863cd1a188cffde04611db3dec96"
+          },
+          "input_size": [
+            500,
+            333
+          ],
+          "processing_size": [
+            500,
+            333
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/57_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/57_img_.png",
+            "archive_member": "UIEB/test/input/57_img_.png",
+            "sha256": "44b2d4311086bf51027fa3bbf96683be72500a29eab0e13f194ece0ddb214a5a"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/57_img_.png",
+            "archive_member": "UIEB/test/GT/57_img_.png",
+            "sha256": "9bd5eba8d6ebddce8a41c73501cb74b8749dc5770317f400ebf113130832e49e"
+          },
+          "input_size": [
+            480,
+            360
+          ],
+          "processing_size": [
+            480,
+            360
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/595_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/595_img_.png",
+            "archive_member": "UIEB/test/input/595_img_.png",
+            "sha256": "c3cf10fcd42eaa76a78d94b9d4fc83040017f0192a346a57c772449dcfbe15f6"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/595_img_.png",
+            "archive_member": "UIEB/test/GT/595_img_.png",
+            "sha256": "0c0f9b72686ca3175aad229186b8365ab9bd18f3d2c8168ad72c39bfbe70169a"
+          },
+          "input_size": [
+            500,
+            375
+          ],
+          "processing_size": [
+            500,
+            375
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/59_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/59_img_.png",
+            "archive_member": "UIEB/test/input/59_img_.png",
+            "sha256": "c93d59f38a47c6f2c7c2b2a189dc55adc55ac766345f1f15ab18a5b4cdaf7ac8"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/59_img_.png",
+            "archive_member": "UIEB/test/GT/59_img_.png",
+            "sha256": "94cd2fa3bd7ac2ae3cdd37ea6f84ea192d04072aa7325ce56de3f74b46ce94fc"
+          },
+          "input_size": [
+            600,
+            449
+          ],
+          "processing_size": [
+            600,
+            449
+          ],
+          "tags": [
+            "green_cast",
+            "highlights"
+          ]
+        },
+        {
+          "id": "uieb_paired/628_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/628_img_.png",
+            "archive_member": "UIEB/test/input/628_img_.png",
+            "sha256": "d98777e752d0363f8b94a1c234f2b9251a5388684e54c3b60172ad21de4bc798"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/628_img_.png",
+            "archive_member": "UIEB/test/GT/628_img_.png",
+            "sha256": "c642091a247fd7389af40a350080a6405b5e16e510558e45dc47cac86dbd89be"
+          },
+          "input_size": [
+            500,
+            375
+          ],
+          "processing_size": [
+            500,
+            375
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/640_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/640_img_.png",
+            "archive_member": "UIEB/test/input/640_img_.png",
+            "sha256": "d5842b53d3474cc5c8b821bdbc2c7a860cf7a23cd8916a4ebeb44e3cf018017a"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/640_img_.png",
+            "archive_member": "UIEB/test/GT/640_img_.png",
+            "sha256": "6ec1f6a5c76784ccef39add55d558a8c790f44624a2fdf37136b4096fc720193"
+          },
+          "input_size": [
+            500,
+            375
+          ],
+          "processing_size": [
+            500,
+            375
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/641_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/641_img_.png",
+            "archive_member": "UIEB/test/input/641_img_.png",
+            "sha256": "730ab5b017d638ca93f18e3be4b986699d3f37e40f9160deec32ecfb99172c5b"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/641_img_.png",
+            "archive_member": "UIEB/test/GT/641_img_.png",
+            "sha256": "587530893b2c44f831bc2fb98f52cdb34e1d8b6362555035d05ce371f88b80dd"
+          },
+          "input_size": [
+            500,
+            375
+          ],
+          "processing_size": [
+            500,
+            375
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/647_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/647_img_.png",
+            "archive_member": "UIEB/test/input/647_img_.png",
+            "sha256": "11542fcce0dcba8947f444489e60d1181a55d7cec87ef89d530e54c14fd04871"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/647_img_.png",
+            "archive_member": "UIEB/test/GT/647_img_.png",
+            "sha256": "d157136452cf564edd47228fed5ef1388929b55f238b1f8fd164a737770b633f"
+          },
+          "input_size": [
+            640,
+            480
+          ],
+          "processing_size": [
+            640,
+            480
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/679_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/679_img_.png",
+            "archive_member": "UIEB/test/input/679_img_.png",
+            "sha256": "357e96e716d3bdf1cfca8002e7a91ab3c337ae86646b3f6124776913d4094234"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/679_img_.png",
+            "archive_member": "UIEB/test/GT/679_img_.png",
+            "sha256": "002029791429330b30bd5e3766449a9658e345365b0442d977afc0939149aa8c"
+          },
+          "input_size": [
+            828,
+            415
+          ],
+          "processing_size": [
+            768,
+            385
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/704_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/704_img_.png",
+            "archive_member": "UIEB/test/input/704_img_.png",
+            "sha256": "40359d74c0453407b42e7cf37f2c18285f64072ddfd55e684a3da19b851d9631"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/704_img_.png",
+            "archive_member": "UIEB/test/GT/704_img_.png",
+            "sha256": "cd2b0e90c136ee83bb7c019359ec0132ecd3eb459429b2fa438643a823b99a1c"
+          },
+          "input_size": [
+            1080,
+            800
+          ],
+          "processing_size": [
+            768,
+            569
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/707_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/707_img_.png",
+            "archive_member": "UIEB/test/input/707_img_.png",
+            "sha256": "f7b1e1f135de137906bac464c7aa8e049605b3a525ec87eb1b6b94ba4e3600ef"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/707_img_.png",
+            "archive_member": "UIEB/test/GT/707_img_.png",
+            "sha256": "edb91140430f5c814cb74beeebb36b78b6c6f463af4289f6c1f73ab84950884f"
+          },
+          "input_size": [
+            1800,
+            1013
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/769_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/769_img_.png",
+            "archive_member": "UIEB/test/input/769_img_.png",
+            "sha256": "44d7db3ff7a7ae5255fee3c8e46110fd6be0ff1d48bbdccb15112dfc130ca811"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/769_img_.png",
+            "archive_member": "UIEB/test/GT/769_img_.png",
+            "sha256": "e8f5b506dc3e75779c9b5d973ed73cdc6b172fb5b5fc8833c9e1cd10edeed9c2"
+          },
+          "input_size": [
+            828,
+            744
+          ],
+          "processing_size": [
+            768,
+            690
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_paired/817_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/817_img_.png",
+            "archive_member": "UIEB/test/input/817_img_.png",
+            "sha256": "b201ee000bfe025448d8d70fbad0cd9cdeb1d939adf92b124ae6d7a9dec62dec"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/817_img_.png",
+            "archive_member": "UIEB/test/GT/817_img_.png",
+            "sha256": "ccd53cd5e9eceeb6b0f14d19bb0899ffb8d568ff9d998ce760e0e1d3529d4db3"
+          },
+          "input_size": [
+            1800,
+            1013
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast",
+            "highlights"
+          ]
+        },
+        {
+          "id": "uieb_paired/819_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/819_img_.png",
+            "archive_member": "UIEB/test/input/819_img_.png",
+            "sha256": "a29c0c3dd0ab73c0b9f316fc43d0f7fe0774df60ee1fc9cf6bae4f4030644dbc"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/819_img_.png",
+            "archive_member": "UIEB/test/GT/819_img_.png",
+            "sha256": "8e315b73a55b37ba72323e6d071fc4ffeaa296bf763161ef04a7f6a6c8410401"
+          },
+          "input_size": [
+            828,
+            576
+          ],
+          "processing_size": [
+            768,
+            534
+          ],
+          "tags": [
+            "low_light",
+            "highlights"
+          ]
+        },
+        {
+          "id": "uieb_paired/837",
+          "input": {
+            "path": "data/test/uieb_paired/input/837.png",
+            "archive_member": "UIEB/test/input/837.png",
+            "sha256": "6cb31dfb0422671c3f896ad8723fa7773853f189565cb4feb8b200da5e8975ab"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/837.png",
+            "archive_member": "UIEB/test/GT/837.png",
+            "sha256": "a42364bb80ba007a9001f5fa9138b36fd1644b977c9b3005ce3642ee15846413"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast",
+            "highlights"
+          ]
+        },
+        {
+          "id": "uieb_paired/850_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/850_img_.png",
+            "archive_member": "UIEB/test/input/850_img_.png",
+            "sha256": "7cffc7949e7735734cbf80c30c9f7827c1ca92f32515b674f0d8fb6dcd1bf87c"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/850_img_.png",
+            "archive_member": "UIEB/test/GT/850_img_.png",
+            "sha256": "75506bd2866a14a74fb53821f6425293faa95e96e3e36ee3537e85e3f8f2c8ef"
+          },
+          "input_size": [
+            680,
+            510
+          ],
+          "processing_size": [
+            680,
+            510
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/855_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/855_img_.png",
+            "archive_member": "UIEB/test/input/855_img_.png",
+            "sha256": "190e109a3f4fd376e91ed59ba67b71ea3ca57892ab4b6449c86e459f27eb992f"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/855_img_.png",
+            "archive_member": "UIEB/test/GT/855_img_.png",
+            "sha256": "b49b5861f819e6c95462183a75fb6c704a711ba5a7f60be87ec677eaf83cc691"
+          },
+          "input_size": [
+            844,
+            528
+          ],
+          "processing_size": [
+            768,
+            480
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/887_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/887_img_.png",
+            "archive_member": "UIEB/test/input/887_img_.png",
+            "sha256": "abbcd94b56eb55188d571eecba64853267ae52904e4d968e65408290f852792f"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/887_img_.png",
+            "archive_member": "UIEB/test/GT/887_img_.png",
+            "sha256": "bb6207cfb0d83ccbf6e3f2489c340a6c30b877af1d779d04a8bbd6c0369af537"
+          },
+          "input_size": [
+            427,
+            320
+          ],
+          "processing_size": [
+            427,
+            320
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/895_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/895_img_.png",
+            "archive_member": "UIEB/test/input/895_img_.png",
+            "sha256": "15b9d8976aa63b57c35355bad53f5335aeb5c7782ec2ab036cf15b1722437297"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/895_img_.png",
+            "archive_member": "UIEB/test/GT/895_img_.png",
+            "sha256": "3f3592c11f05d7dcdae6fba814b770cf1754d27a1c0bd44bdad693b9ac32b646"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/905_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/905_img_.png",
+            "archive_member": "UIEB/test/input/905_img_.png",
+            "sha256": "587c70101abe313aa918217eab069af7bfade490d383675aec1e71fbe1053a34"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/905_img_.png",
+            "archive_member": "UIEB/test/GT/905_img_.png",
+            "sha256": "9b5e229b5e84d2050adf5bc2bb40661ddbb0aec81fb69d7e0c820ed6cdcaa1b6"
+          },
+          "input_size": [
+            960,
+            1080
+          ],
+          "processing_size": [
+            683,
+            768
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_paired/911_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/911_img_.png",
+            "archive_member": "UIEB/test/input/911_img_.png",
+            "sha256": "ae6bc954d6697ebe0e8ce8b1c00cdff1de0a95eb4e99ff73be26ba3b76726261"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/911_img_.png",
+            "archive_member": "UIEB/test/GT/911_img_.png",
+            "sha256": "a0925397fb3e746e1b3d3829bda81f82b6e7b213b8f7cc94619e592fe9e7bc72"
+          },
+          "input_size": [
+            1380,
+            1120
+          ],
+          "processing_size": [
+            768,
+            623
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_paired/98_img_",
+          "input": {
+            "path": "data/test/uieb_paired/input/98_img_.png",
+            "archive_member": "UIEB/test/input/98_img_.png",
+            "sha256": "230dceaec541d8f15a932bc18cd9012dbf57b622793fc05b45ed66c507c75678"
+          },
+          "reference": {
+            "path": "data/test/uieb_paired/reference/98_img_.png",
+            "archive_member": "UIEB/test/GT/98_img_.png",
+            "sha256": "2823e465a2b89cf0b8663aad1e4d7e2b781703ce5e8fcaf30b1d86b2d5696f7e"
+          },
+          "input_size": [
+            600,
+            440
+          ],
+          "processing_size": [
+            600,
+            440
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        }
+      ]
+    },
+    "uieb_c60": {
+      "reference_images": false,
+      "source_page": "https://li-chongyi.github.io/proj_benchmark.html",
+      "official_archive": "https://drive.google.com/file/d/1Ew_r83nXzVk0hlkfuomWqsAIxuq6kaN4/view",
+      "archive_sha256": "4d112ebd73044845b365007e34876a00271c81a84a516d29231e1069b056223d",
+      "selection": {
+        "scope": "UIEB Challenging-60",
+        "method": "all members other than the 10 development and 1 workflow files",
+        "excluded_archive_members": [
+          "challenging-60/10091.png",
+          "challenging-60/10475.png",
+          "challenging-60/10488.png",
+          "challenging-60/12191.png",
+          "challenging-60/12709.png",
+          "challenging-60/12753.png",
+          "challenging-60/12972.png",
+          "challenging-60/432.png",
+          "challenging-60/605.png",
+          "challenging-60/6333.png",
+          "challenging-60/9553.png"
+        ]
+      },
+      "count": 49,
+      "files": [
+        {
+          "id": "uieb_c60/100001",
+          "input": {
+            "path": "data/test/uieb_c60/100001.png",
+            "archive_member": "challenging-60/100001.png",
+            "sha256": "ec135891b87a06b2aca3f5d280c688f45b663d696c0fef03ff364629a440d73e"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/10103",
+          "input": {
+            "path": "data/test/uieb_c60/10103.png",
+            "archive_member": "challenging-60/10103.png",
+            "sha256": "ff162fbd546b954e832b5c25359f7ff87a4824656be9827253a3572c9178efaf"
+          },
+          "input_size": [
+            640,
+            360
+          ],
+          "processing_size": [
+            640,
+            360
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/10167",
+          "input": {
+            "path": "data/test/uieb_c60/10167.png",
+            "archive_member": "challenging-60/10167.png",
+            "sha256": "30ccf84b11e7220843b17bdb838127a1c2f442ab2d6a417c1351735b7cb97b55"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/102",
+          "input": {
+            "path": "data/test/uieb_c60/102.png",
+            "archive_member": "challenging-60/102.png",
+            "sha256": "711f62e84b4a9934c029d059c112dc4282c2e9f04c41728d19b5352ebc012889"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/10226",
+          "input": {
+            "path": "data/test/uieb_c60/10226.png",
+            "archive_member": "challenging-60/10226.png",
+            "sha256": "974f9a3146c15f738389002b8c427b20cef4e44112a821e0eded039b04cd552c"
+          },
+          "input_size": [
+            640,
+            360
+          ],
+          "processing_size": [
+            640,
+            360
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/12203",
+          "input": {
+            "path": "data/test/uieb_c60/12203.png",
+            "archive_member": "challenging-60/12203.png",
+            "sha256": "08b21cded4ebfa5257803d2e7859612fd0066f4b1bc10f805ec621abc221dd4f"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/12228",
+          "input": {
+            "path": "data/test/uieb_c60/12228.png",
+            "archive_member": "challenging-60/12228.png",
+            "sha256": "b8ba1a7e47d949c6ad4d163951592cd251d796747781be570e9125b9859fd781"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast",
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/12565",
+          "input": {
+            "path": "data/test/uieb_c60/12565.png",
+            "archive_member": "challenging-60/12565.png",
+            "sha256": "5a5a699f2ec565034e09ec5fef2a1e11eaeead0daef6acb2a9e16c7f7fe0b9d8"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast",
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/12577",
+          "input": {
+            "path": "data/test/uieb_c60/12577.png",
+            "archive_member": "challenging-60/12577.png",
+            "sha256": "77d03f5bded43a92bb6c4907c7695c28618d10568d9bf6aaf94d038397b0604d"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/12625",
+          "input": {
+            "path": "data/test/uieb_c60/12625.png",
+            "archive_member": "challenging-60/12625.png",
+            "sha256": "ed2661394143912845264852010346f636e5f42ab3c01106172946d63a6c39d1"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast",
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/12960",
+          "input": {
+            "path": "data/test/uieb_c60/12960.png",
+            "archive_member": "challenging-60/12960.png",
+            "sha256": "8cde1d5e7563cecbc98152159371b15040c942b249ab18501e76d9c08d6395c8"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/13252",
+          "input": {
+            "path": "data/test/uieb_c60/13252.png",
+            "archive_member": "challenging-60/13252.png",
+            "sha256": "868883e764e6b291133545d7532ec4728853ee3465dc12fba7fb0226dca84c22"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/13259",
+          "input": {
+            "path": "data/test/uieb_c60/13259.png",
+            "archive_member": "challenging-60/13259.png",
+            "sha256": "c9554376fce0be037b16d57446f59fd31f470e069efd7852a512a1d3e1111038"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/15603",
+          "input": {
+            "path": "data/test/uieb_c60/15603.png",
+            "archive_member": "challenging-60/15603.png",
+            "sha256": "af5910fc2d0c4a5deee264ba79f83b375c6ebd90bf30956ba745f1d7e39257e3"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_c60/15735",
+          "input": {
+            "path": "data/test/uieb_c60/15735.png",
+            "archive_member": "challenging-60/15735.png",
+            "sha256": "765f29a5acb9f51d2dee5edb5c789bb34197e67090ff97e21fc8afdf21ed4bcf"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_c60/15738",
+          "input": {
+            "path": "data/test/uieb_c60/15738.png",
+            "archive_member": "challenging-60/15738.png",
+            "sha256": "c4d48dc7ab8d259e95db3bb965342351df31ec88836a944ca112442d5c5d180f"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_c60/15740",
+          "input": {
+            "path": "data/test/uieb_c60/15740.png",
+            "archive_member": "challenging-60/15740.png",
+            "sha256": "8a906d1431f11065d196e78aa718c23be90c37388e2d0af20a21cbcbf3263b94"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/15774",
+          "input": {
+            "path": "data/test/uieb_c60/15774.png",
+            "archive_member": "challenging-60/15774.png",
+            "sha256": "0736326e93ac2db4d6baa892068114a71b6aab137929c5c2a91dc33bc3909b62"
+          },
+          "input_size": [
+            640,
+            360
+          ],
+          "processing_size": [
+            640,
+            360
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/15775",
+          "input": {
+            "path": "data/test/uieb_c60/15775.png",
+            "archive_member": "challenging-60/15775.png",
+            "sha256": "1fd90d076793b0c7955bb0ebd8c9ed39a21a1c9d0bb74e7068e0ebaba48c0cea"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/2",
+          "input": {
+            "path": "data/test/uieb_c60/2.png",
+            "archive_member": "challenging-60/2.png",
+            "sha256": "841f26cc9150807eb0ffec3f9357fd2154a907e04d588414ee830b8e0ff264c4"
+          },
+          "input_size": [
+            2000,
+            1124
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_c60/2575",
+          "input": {
+            "path": "data/test/uieb_c60/2575.png",
+            "archive_member": "challenging-60/2575.png",
+            "sha256": "7fcd3b73549dd7c8e99a68514450f26f980e1fecab5d8d44d00e5fcfa970f94c"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_c60/2583",
+          "input": {
+            "path": "data/test/uieb_c60/2583.png",
+            "archive_member": "challenging-60/2583.png",
+            "sha256": "237d44de00f80d3253b1445a701fcaba8718915b59623006c24908dfdad452aa"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast",
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/2856",
+          "input": {
+            "path": "data/test/uieb_c60/2856.png",
+            "archive_member": "challenging-60/2856.png",
+            "sha256": "d22007ec1db6bae09edf8c67ccf57e3a340575dd4cbbd75d22440f62d6164701"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/3027",
+          "input": {
+            "path": "data/test/uieb_c60/3027.png",
+            "archive_member": "challenging-60/3027.png",
+            "sha256": "63232d35d3e4aa5a5b2523a4d97fdb8f26a557321277fa009617281035ea941e"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/3051",
+          "input": {
+            "path": "data/test/uieb_c60/3051.png",
+            "archive_member": "challenging-60/3051.png",
+            "sha256": "3ef3622e4b8657cdfd46f9ab5131a5795ee204dc5ef8362617b8acd9cf6d1f84"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast",
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/3087",
+          "input": {
+            "path": "data/test/uieb_c60/3087.png",
+            "archive_member": "challenging-60/3087.png",
+            "sha256": "e6d033f81f642c7f8ddea986a276c911126f8a1ed05e654254f77e41c9d8217b"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/3175",
+          "input": {
+            "path": "data/test/uieb_c60/3175.png",
+            "archive_member": "challenging-60/3175.png",
+            "sha256": "5a1646cd814e59913d9d15ef3eb94240a724c5b71e2e46e4d5e7e4854f85cd17"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/3201",
+          "input": {
+            "path": "data/test/uieb_c60/3201.png",
+            "archive_member": "challenging-60/3201.png",
+            "sha256": "02fda407476499d7566545ca356eaadf310e561bb97c62786f307bed75129ae8"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/3279",
+          "input": {
+            "path": "data/test/uieb_c60/3279.png",
+            "archive_member": "challenging-60/3279.png",
+            "sha256": "a60532012c0c04f31ad474315f050cbafa6c54a6da078b303464ff433cc57aa2"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_c60/34",
+          "input": {
+            "path": "data/test/uieb_c60/34.png",
+            "archive_member": "challenging-60/34.png",
+            "sha256": "e9e0567812594d4630680a2c7d5cb0e736a4c7825277e9755aa9b4178964b00a"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/3494",
+          "input": {
+            "path": "data/test/uieb_c60/3494.png",
+            "archive_member": "challenging-60/3494.png",
+            "sha256": "d1d302db7637454e6b01edf11476c4fcca33f3cd2eb16b660307a8387341aaff"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast",
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/3519",
+          "input": {
+            "path": "data/test/uieb_c60/3519.png",
+            "archive_member": "challenging-60/3519.png",
+            "sha256": "e54e396e9efd0c221b0190cdb933be417b406063818f2e25244fa78b776dd305"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/358_img_",
+          "input": {
+            "path": "data/test/uieb_c60/358_img_.png",
+            "archive_member": "challenging-60/358_img_.png",
+            "sha256": "4d054bf90c7471dfdf135edfca7876f5fa1149c23092807a1ee2b210202ac611"
+          },
+          "input_size": [
+            259,
+            194
+          ],
+          "processing_size": [
+            259,
+            194
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/5",
+          "input": {
+            "path": "data/test/uieb_c60/5.png",
+            "archive_member": "challenging-60/5.png",
+            "sha256": "c23e926c3b552d69f1bbf955894197e92a2e839ccd9b0323b6bb713496836830"
+          },
+          "input_size": [
+            853,
+            640
+          ],
+          "processing_size": [
+            768,
+            576
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/52",
+          "input": {
+            "path": "data/test/uieb_c60/52.png",
+            "archive_member": "challenging-60/52.png",
+            "sha256": "55e67bece8c74d68015eb1d9c7835b2e6fcf1679edc3d8eb70e26dd30f90de46"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/579",
+          "input": {
+            "path": "data/test/uieb_c60/579.png",
+            "archive_member": "challenging-60/579.png",
+            "sha256": "d70194e3d1e2639833a054864547357133872aa3eea3c81535a1c7496bc22e3c"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast",
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/616",
+          "input": {
+            "path": "data/test/uieb_c60/616.png",
+            "archive_member": "challenging-60/616.png",
+            "sha256": "1f3824ec57bcd19f165ed7e68979d5dc1cbcd24d4e2e82f146c633eb8a266862"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/627",
+          "input": {
+            "path": "data/test/uieb_c60/627.png",
+            "archive_member": "challenging-60/627.png",
+            "sha256": "303d7851cd247b91cee1167dab60b3d5ff287cac8e09bfbac605e3c17ea0a31c"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_c60/6340",
+          "input": {
+            "path": "data/test/uieb_c60/6340.png",
+            "archive_member": "challenging-60/6340.png",
+            "sha256": "c72fba1cc50856d4e8ab8bb0bd58617199ac042ad31ac3e5c9f9df379823b512"
+          },
+          "input_size": [
+            854,
+            480
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/643_img_",
+          "input": {
+            "path": "data/test/uieb_c60/643_img_.png",
+            "archive_member": "challenging-60/643_img_.png",
+            "sha256": "3675b4401c8abebe259981684e77ac467fe33fd8da40df23d816d0dd93074e79"
+          },
+          "input_size": [
+            1200,
+            850
+          ],
+          "processing_size": [
+            768,
+            544
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/6527",
+          "input": {
+            "path": "data/test/uieb_c60/6527.png",
+            "archive_member": "challenging-60/6527.png",
+            "sha256": "6e7eac9c31eec44fdc7a2e61aa2011b45db2822111662ff832f70a4409a42b30"
+          },
+          "input_size": [
+            854,
+            480
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/7277",
+          "input": {
+            "path": "data/test/uieb_c60/7277.png",
+            "archive_member": "challenging-60/7277.png",
+            "sha256": "7435fb8f37c80acbbb3ff314d7a39242c4972e43188dc18c5bba5feefc2e520c"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/7291",
+          "input": {
+            "path": "data/test/uieb_c60/7291.png",
+            "archive_member": "challenging-60/7291.png",
+            "sha256": "221e961e5eb57d7324055f6dc33bba4c9298317d56156728f493bd3b741a3b38"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/770",
+          "input": {
+            "path": "data/test/uieb_c60/770.png",
+            "archive_member": "challenging-60/770.png",
+            "sha256": "4d41f6440f419b36d1f8582fc81d71ccd6c73bb5ff02692f5df6e53ab412d669"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "other"
+          ]
+        },
+        {
+          "id": "uieb_c60/866",
+          "input": {
+            "path": "data/test/uieb_c60/866.png",
+            "archive_member": "challenging-60/866.png",
+            "sha256": "b14760cd8cab5c96852322273630c11ecec9dcc22c2c54b3fc60317a94648cb1"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/880",
+          "input": {
+            "path": "data/test/uieb_c60/880.png",
+            "archive_member": "challenging-60/880.png",
+            "sha256": "e44b06fe9629571dfc5d7f960ab9f858a327c70eb4435fd7b0a06410d7a2b6a2"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "green_cast"
+          ]
+        },
+        {
+          "id": "uieb_c60/9602",
+          "input": {
+            "path": "data/test/uieb_c60/9602.png",
+            "archive_member": "challenging-60/9602.png",
+            "sha256": "c428c43377d9549706e7de24abef32ea945f98885f6e37db45fb4358600947d1"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast",
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/9607",
+          "input": {
+            "path": "data/test/uieb_c60/9607.png",
+            "archive_member": "challenging-60/9607.png",
+            "sha256": "7d78c83752cb6ea7bbed0c40d7404bbc6ed044323847b621baf911d70e0f4b9e"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "low_light"
+          ]
+        },
+        {
+          "id": "uieb_c60/9618",
+          "input": {
+            "path": "data/test/uieb_c60/9618.png",
+            "archive_member": "challenging-60/9618.png",
+            "sha256": "19b0dd48f250683c1e38c8bd1cb17c903fcd6e10951852170ed6287cd4dc61ec"
+          },
+          "input_size": [
+            1280,
+            720
+          ],
+          "processing_size": [
+            768,
+            432
+          ],
+          "tags": [
+            "blue_cast",
+            "highlights"
+          ]
+        }
+      ]
+    }
+  }
+}

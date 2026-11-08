@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/chingheng0808/WWE-UIE",
+  "revision": "fd0697558203f9f849800cc13b804116bb3f921c",
+  "license": "Apache-2.0",
+  "modifications": "None. The official model.py is imported without running its __main__ block.",
+  "files": {
+    "model.py": "ac3e1ff534bc81d0ee5d6779c5ff02ae8bbd725ed0bb7064b3a4e06313f99d57",
+    "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  }
+}

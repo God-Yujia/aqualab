@@ -1,0 +1,67 @@
+{
+  "dataset": "UIEB Challenging-60",
+  "source_page": "https://li-chongyi.github.io/proj_benchmark.html",
+  "official_archive": "https://drive.google.com/file/d/1Ew_r83nXzVk0hlkfuomWqsAIxuq6kaN4/view",
+  "archive_password_source": "https://li-chongyi.github.io/proj_benchmark.html",
+  "archive_sha256": "4d112ebd73044845b365007e34876a00271c81a84a516d29231e1069b056223d",
+  "purpose": "Development and qualitative inspection; these selected images are not an untouched final test set.",
+  "reference_images": false,
+  "selection": {
+    "method": "seeded random sample of sorted archive image members",
+    "seed": 42,
+    "count": 10
+  },
+  "usage": "Academic, non-commercial use; dataset redistribution is prohibited by its official source.",
+  "files": [
+    {
+      "path": "data/dev/uieb_c60/10091.png",
+      "archive_member": "challenging-60/10091.png",
+      "sha256": "e03de289f6ea4c76c828c4242c09eeebd0bee228bb64f57bd4811f4a53cecdcf"
+    },
+    {
+      "path": "data/dev/uieb_c60/10475.png",
+      "archive_member": "challenging-60/10475.png",
+      "sha256": "87b184c3a28b0ad36d6824a64258a982782acfc63b3b47814c135080629f9184"
+    },
+    {
+      "path": "data/dev/uieb_c60/10488.png",
+      "archive_member": "challenging-60/10488.png",
+      "sha256": "483a92324a58351305c5efb9f49a3cf619f8b6d5ea74906c2f0241f3cbb1bdb9"
+    },
+    {
+      "path": "data/dev/uieb_c60/12191.png",
+      "archive_member": "challenging-60/12191.png",
+      "sha256": "4e96e9eea8853daa494d3d9edce9ee6851d96b5c8af9688a0e6cd3b1a04aca7c"
+    },
+    {
+      "path": "data/dev/uieb_c60/12709.png",
+      "archive_member": "challenging-60/12709.png",
+      "sha256": "592ebf17c4106d17011e7042668da2a94cd5590a5cb6c0a7cd1509b3e25d4ccf"
+    },
+    {
+      "path": "data/dev/uieb_c60/12753.png",
+      "archive_member": "challenging-60/12753.png",
+      "sha256": "5fa397bc1a818aa8ccdb792e9559997d6d87492d5bb1034a0d8545cff2fa45e4"
+    },
+    {
+      "path": "data/dev/uieb_c60/12972.png",
+      "archive_member": "challenging-60/12972.png",
+      "sha256": "2fc99f6fe67dd2712930bb2e8bbec8d27b929ca2e231fffe1f559ac1b16cfce3"
+    },
+    {
+      "path": "data/dev/uieb_c60/432.png",
+      "archive_member": "challenging-60/432.png",
+      "sha256": "ae222910d456edeb325cfb4972f143db5aa7d02074e579d1c3a55a60c1501ee3"
+    },
+    {
+      "path": "data/dev/uieb_c60/6333.png",
+      "archive_member": "challenging-60/6333.png",
+      "sha256": "e1e48f8db4af572ee39f3995b05cbc8bfbbd6268fa4543d3b85f0589b82eb741"
+    },
+    {
+      "path": "data/dev/uieb_c60/9553.png",
+      "archive_member": "challenging-60/9553.png",
+      "sha256": "85c3d975c3c5bc3f26f4cd4144900f21355305296c2d166665433f446b7e0883"
+    }
+  ]
+}

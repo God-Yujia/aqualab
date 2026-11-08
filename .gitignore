@@ -1,0 +1,14 @@
+.venv/
+.cache/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+data/*
+!data/README.md
+!data/dev_manifest.json
+!data/test_manifest.json
+weights/*
+!weights/README.md
+!weights/source.json
+outputs/*
+!outputs/README.md

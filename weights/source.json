@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/chingheng0808/WWE-UIE",
+  "revision": "fd0697558203f9f849800cc13b804116bb3f921c",
+  "download_page": "https://drive.google.com/file/d/1c80kkDbgpLD1MtqVLql1Y1NQVD7IzxiO/view",
+  "download_url": "https://drive.usercontent.google.com/download?id=1c80kkDbgpLD1MtqVLql1Y1NQVD7IzxiO&export=download&confirm=t",
+  "dataset_named_by_upstream": "UIEB",
+  "file": "weights/wwe_uie_uieb.pth",
+  "sha256": "36c3e59e556ed69a31e3f83ae7e15b86409eeb951de049ebc2207728c210027d",
+  "size_bytes": 3046764,
+  "architecture": {
+    "in_channels": 3,
+    "feature_channels": 32,
+    "use_white_balance": true
+  }
+}
