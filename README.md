@@ -2,6 +2,8 @@
 
 程序读取照片，经 WWE-UIE 预训练模型增强，可在保存前对增强幅度做局部控制。桌面版提供原图与增强结果预览、强度调节、系数图和 PNG 导出。实验结果通过命令行独立生成。
 
+当前实现和正式实验已完成。代码入口、审查发现及最新验证记录见 [项目审查与优化记录](docs/audit_20261109.md)。`docs/step1.md` 是早期开发记录，正式结论以 [实验冻结记录](docs/day4.md) 和 [正式评测结果](docs/day5.md) 为准。
+
 **启动桌面版**
 
 本机已用 RTX 4060 Laptop GPU 验证。在项目目录启动窗口：
@@ -12,7 +14,7 @@
 
 点“打开照片”，用滑杆调节后点“导出 PNG”。每张照片只做一次模型预测，拖动滑杆时复用预测结果。预览和导出保持宽高比，最长边为 768 像素。0% 显示处理尺寸下的原图，100% 对应内部实验的 `local@1.0`。使用 `--device cpu` 可在 CPU 上运行。
 
-默认强度为 **100%**。在 40 对 UIEB 配对图的 60%、80%、100% 三档比较中，这一档的平均 SSIM 和 PSNR 均最高。默认值和选参依据记录在 `data/test_manifest.json`。 [三档实测](docs/day5.md)
+默认强度为 **100%**。在 40 对 UIEB 配对图的 60%、80%、100% 三档比较中，这一档的平均 SSIM 和 PSNR 均最高。这 40 对图也参与了默认档选择，因此这一结果属于同样本选参，不能作为独立泛化验证。默认值和选参依据记录在 `data/test_manifest.json`。 [三档实测](docs/day5.md)
 
 勾选“显示局部控制”可并排查看实际系数，越亮表示该像素保留的模型改变量越多。系数的黑白端点分别为 0% 和 100%，滑杆设为 60% 时，未额外限幅的像素也只到 60% 灰度。使用“导出系数图”另存一张灰度 PNG。
 
@@ -29,13 +31,15 @@
 在本目录打开终端。安装到独立 `.venv`，无需修改全局 Python，也无需激活环境。
 
 ```powershell
-python -m venv .venv
+py -3.10 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m pip install -r requirements-torch-cuda.txt
 .\.venv\Scripts\python.exe tools\bootstrap_assets.py
 ```
 
 GPU 环境使用 PyTorch 2.4.1 + CUDA 11.8，接近上游推荐的 PyTorch 2.4.0 环境。传统基线在 CPU 上使用 OpenCV。 [PyTorch 安装说明](https://pytorch.org/get-started/previous-versions/#v241)
+
+先安装 Python 3.10；若未安装 Windows Python Launcher（`py`），可用 Python 3.10 解释器的完整路径代替 `py -3.10`。已有可用 `.venv` 时直接使用它，无需重建。
 
 其他电脑使用 CPU 时，将 GPU 版 PyTorch 的安装命令改为：
 
@@ -57,6 +61,14 @@ GPU 环境使用 PyTorch 2.4.1 + CUDA 11.8，接近上游推荐的 PyTorch 2.4.0
 .\.venv\Scripts\python.exe infer.py --input "D:\照片\海底.jpg" --output outputs\my_photo
 .\.venv\Scripts\python.exe infer.py --input "D:\照片\潜水" --output outputs\my_batch
 ```
+
+命令行默认 `--method clip`，用于保留原模型硬裁剪基线。要得到与桌面版默认输出相同的局部控制结果，显式使用：
+
+```powershell
+.\.venv\Scripts\python.exe infer.py --input "D:\照片\海底.jpg" --method local --strength 1.0 --output outputs\my_local
+```
+
+`--output` 必须指向新建或空目录，避免不同批次的增强图、系数图和日志混在一起。重跑时换一个目录；省略 `--output` 会自动创建带时间戳的目录。
 
 默认自动选择 GPU，最长边限制为 768 像素，保持宽高比，输出尺寸与实际处理尺寸一致。使用 `--max-side 0` 保持原始分辨率；显存需求随尺寸增加。CPU 验证可使用 `--device cpu --max-side 256`。
 
@@ -117,7 +129,7 @@ outputs/first_run/
 - 权重：官方 README 的 UIEB 权重链接。使用完整严格匹配加载，未训练或微调。
 - 样图：[UIEB 官方主页](https://li-chongyi.github.io/proj_benchmark.html)的 Challenging-60；固定种子 42 抽取 10 张，清单见 `data/dev_manifest.json`。它们作为开发样本，后续最终测试另留图像。
 - C60 没有参考图，本阶段不计算 PSNR/SSIM。UIEB 官方限制为学术、非商业用途并禁止重新分发；图像、权重、缓存和输出均已排除出 Git。
-- 这里采用保持宽高比的推理预处理，上游部分基准测试会统一缩放到 256×256。当前结果用于流程验证，不代表对论文分数的复现。
+- 这里采用保持宽高比的推理预处理，上游部分基准测试会统一缩放到 256×256。本项目已完成下述内部对照实验，但样本和协议与论文不同，不代表对论文分数的复现。
 
 **复现正式评测**
 
@@ -125,10 +137,10 @@ outputs/first_run/
 
 ```powershell
 .\.venv\Scripts\python.exe tools\fetch_test_assets.py
-.\.venv\Scripts\python.exe tools\evaluate.py --device cuda
+.\.venv\Scripts\python.exe tools\evaluate.py --device cuda --output outputs\evaluation_replay
 ```
 
-用 `--verify-only` 可以离线校验已有数据。评测固定使用 scikit-image 0.24.0，逐图 CSV 和汇总 JSON 保存在 `outputs/day5/` 下。 [实验冻结记录](docs/day4.md)
+用 `--verify-only` 可以离线校验已有数据。评测固定使用 scikit-image 0.24.0，逐图 CSV 和汇总 JSON 写到指定输出目录。每次重跑使用新的目录；`outputs/day5/` 保留原正式结果作为对照。 [实验冻结记录](docs/day4.md)
 
 安装开发依赖后运行性质和回归测试：
 
@@ -138,3 +150,5 @@ outputs/first_run/
 ```
 
 区间、零强度和合成图回归在 CPU 上运行。历史开发图的逐像素回归使用原来的 CUDA 推理路径，并读取 `bootstrap_assets.py` 准备的模型和开发图。
+
+测试还覆盖冻结资产被修改时拒绝使用、评测协议校验、输出目录保护，以及桌面导出同步与加载失败后的状态清理。桌面测试使用真实 Tk 窗口对象，在没有图形显示环境时会跳过。

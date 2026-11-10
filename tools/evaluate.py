@@ -14,6 +14,7 @@ import sys
 import time
 
 import numpy as np
+import PIL
 from PIL import Image, ImageDraw
 import skimage
 from skimage.color import rgb2lab
@@ -27,7 +28,7 @@ if str(ROOT) not in sys.path:
 from infer import UnderwaterEnhancer, file_sha256, prepare_image, rgb_image
 from local_control import GUIDE_EPSILON, GUIDE_RADIUS, RANGE_KNEE, apply_output_control
 from tools.fetch_test_assets import verify_manifest
-from traditional import CLAHE_CLIP_LIMIT, CLAHE_TILE_GRID, gray_world_clahe
+from traditional import CLAHE_CLIP_LIMIT, CLAHE_TILE_GRID, cv2, gray_world_clahe
 
 
 MANIFEST = ROOT / "data/test_manifest.json"
@@ -56,9 +57,18 @@ def validate_protocol(protocol: dict) -> Path:
         "preserve_aspect_ratio": True, "metric_image": "exported 8-bit RGB at processing dimensions",
     }.items()):
         raise ValueError("The evaluator requires the frozen RGB8 preprocessing protocol.")
-    local = next(method for method in protocol["methods"] if method["id"] == "local")
-    if local["method"] != "local" or local["strength"] != 1.0 or not local["smoothing"]:
-        raise ValueError("The frozen local baseline must be the full module at strength 1.0.")
+    expected_methods = [
+        {"id": "traditional", "method": "traditional"},
+        {"id": "clip", "method": "clip"},
+        {"id": "fixed_080", "method": "fixed", "strength": 0.8},
+        {"id": "local", "method": "local", "strength": 1.0, "smoothing": True},
+        {"id": "normalize", "method": "normalize"},
+        {"id": "local_no_smoothing", "method": "local", "strength": 1.0, "smoothing": False},
+    ]
+    if protocol["methods"] != expected_methods:
+        raise ValueError("Runtime comparison methods differ from the frozen manifest.")
+    if tuple(protocol["interface"]["candidates"]) != SWEEP_STRENGTHS:
+        raise ValueError("Runtime strength candidates differ from the frozen manifest.")
     uciqe = protocol["metrics"]["uciqe_lab"]
     if any(uciqe[key] != value for key, value in {
         "chroma": "hypot(a,b)",
@@ -71,6 +81,10 @@ def validate_protocol(protocol: dict) -> Path:
         raise ValueError("The evaluator requires batch size 1 and synchronized CUDA timing.")
     if skimage.__version__ != "0.24.0":
         raise RuntimeError("Install the pinned scikit-image 0.24.0 from requirements.txt.")
+    model_source = json.loads((ROOT / "third_party/wwe_uie/source.json").read_text(encoding="utf-8"))
+    if (model_source["revision"] != protocol["checkpoint"]["revision"]
+        or file_sha256(ROOT / "third_party/wwe_uie/model.py") != model_source["files"]["model.py"]):
+        raise ValueError("The model source does not match the frozen WWE-UIE provenance.")
     checkpoint = (ROOT / protocol["checkpoint"]["path"]).resolve()
     if not checkpoint.is_relative_to(ROOT) or file_sha256(checkpoint) != protocol["checkpoint"]["sha256"]:
         raise ValueError("The checkpoint does not match the frozen manifest.")
@@ -190,9 +204,16 @@ def save_strength_curve(path: Path, scores: dict, selected: float) -> None:
 
 
 def evaluate(manifest: dict, manifest_hash: str, device: str, output: Path) -> None:
+    if output.exists():
+        raise ValueError(f"Output directory already exists: {output}")
     protocol = manifest["protocol"]
     checkpoint = validate_protocol(protocol)
     verified_files = verify_manifest(manifest)
+    source_paths = (
+        "infer.py", "local_control.py", "traditional.py", "tools/evaluate.py",
+        "tools/fetch_test_assets.py", "third_party/wwe_uie/model.py",
+    )
+    source_hashes = {path: file_sha256(ROOT / path) for path in source_paths}
     print(f"Verified {verified_files} files against the frozen manifest.", flush=True)
     enhancer = UnderwaterEnhancer(checkpoint, device)
     subsets = manifest["subsets"]
@@ -291,6 +312,8 @@ def evaluate(manifest: dict, manifest_hash: str, device: str, output: Path) -> N
         for strength in SWEEP_STRENGTHS
     }
     chosen = max(scores, key=lambda key: (scores[key]["mean_ssim_rgb"], float(scores[key]["mean_psnr_rgb"])))
+    if any(file_sha256(ROOT / path) != digest for path, digest in source_hashes.items()):
+        raise RuntimeError("Evaluation source files changed during the run; rerun after saving all edits.")
     output.mkdir(parents=True, exist_ok=False)
     write_csv(output / "per_image.csv", rows)
     write_csv(output / "strength_sweep.csv", sweep_rows)
@@ -304,10 +327,13 @@ def evaluate(manifest: dict, manifest_hash: str, device: str, output: Path) -> N
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "manifest_sha256": manifest_hash,
         "verified_files": verified_files,
+        "source_sha256": source_hashes,
         "protocol": protocol,
         "environment": {
             "python": platform.python_version(), "torch": torch.__version__,
             "scikit_image": skimage.__version__, "numpy": np.__version__,
+            "pillow": PIL.__version__, "opencv": cv2.__version__,
+            "cuda_runtime": torch.version.cuda, "cudnn": torch.backends.cudnn.version(),
             "device": str(enhancer.device),
             "device_name": torch.cuda.get_device_name(enhancer.device) if enhancer.device.type == "cuda" else platform.processor(),
         },
@@ -337,7 +363,7 @@ def main() -> int:
     try:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
         evaluate(manifest, file_sha256(MANIFEST), args.device, output)
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, RuntimeError, KeyError) as error:
         parser.exit(1, f"Evaluation failed: {error}\n")
     return 0
 

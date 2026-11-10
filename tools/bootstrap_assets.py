@@ -78,49 +78,64 @@ def drive_url(file_id: str) -> str:
     return f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t"
 
 
-def write_json(path: Path, value: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+def verify_frozen_file(path: Path, expected_hash: str) -> None:
+    """Never replace the trusted digest with a digest of a changed local file."""
+    if sha256(path) != expected_hash:
+        raise ValueError(
+            f"SHA-256 mismatch: {path}. Restore the frozen file or remove the "
+            "damaged download and rerun; the recorded digest was not changed."
+        )
 
 
 def prepare_model() -> None:
+    model_source = json.loads((ROOT / "third_party/wwe_uie/source.json").read_text(encoding="utf-8"))
+    checkpoint_source = json.loads((ROOT / "weights/source.json").read_text(encoding="utf-8"))
+    if any(source["revision"] != REVISION or source["repository"] != REPOSITORY
+           for source in (model_source, checkpoint_source)):
+        raise ValueError("Asset provenance differs from the frozen WWE-UIE revision.")
     paths = {
         "model.py": ROOT / "third_party/wwe_uie/model.py",
         "LICENSE": ROOT / "third_party/wwe_uie/LICENSE",
     }
     for name, path in paths.items():
         download(f"{RAW}/{name}", path)
-    write_json(ROOT / "third_party/wwe_uie/source.json", {
-        "repository": REPOSITORY,
-        "revision": REVISION,
-        "license": "Apache-2.0",
-        "modifications": "None. The official model.py is imported without running its __main__ block.",
-        "files": {name: sha256(path) for name, path in paths.items()},
-    })
+        verify_frozen_file(path, model_source["files"][name])
     checkpoint = ROOT / "weights/wwe_uie_uieb.pth"
     download(drive_url(MODEL_ID), checkpoint, binary=True)
+    verify_frozen_file(checkpoint, checkpoint_source["sha256"])
     with checkpoint.open("rb") as stream:
         if stream.read(4) != b"PK\x03\x04":
             raise RuntimeError("Unexpected checkpoint format; expected a PyTorch ZIP checkpoint.")
-    write_json(ROOT / "weights/source.json", {
-        "repository": REPOSITORY,
-        "revision": REVISION,
-        "download_page": f"https://drive.google.com/file/d/{MODEL_ID}/view",
-        "download_url": drive_url(MODEL_ID),
-        "dataset_named_by_upstream": "UIEB",
-        "file": checkpoint.relative_to(ROOT).as_posix(),
-        "sha256": sha256(checkpoint),
-        "size_bytes": checkpoint.stat().st_size,
-        "architecture": {"in_channels": 3, "feature_channels": 32, "use_white_balance": True},
-    })
 
 
 def prepare_samples(count: int, seed: int) -> None:
+    manifest = json.loads((ROOT / "data/dev_manifest.json").read_text(encoding="utf-8"))
+    if manifest["selection"]["count"] != count or manifest["selection"]["seed"] != seed:
+        raise ValueError("The requested sample selection differs from the frozen development manifest.")
+    expected_files = {row["path"]: row["sha256"] for row in manifest["files"]}
+    if len(expected_files) != count or len(manifest["files"]) != count:
+        raise ValueError("The development manifest contains missing or duplicate files.")
+    sample_dir = ROOT / "data/dev/uieb_c60"
+    if sample_dir.is_dir():
+        expected_names = {PurePosixPath(path).name for path in expected_files}
+        existing_names = {path.name for path in sample_dir.iterdir() if path.is_file()}
+        if existing_names - expected_names:
+            raise ValueError("The sample folder contains files outside the frozen development manifest.")
+    for relative, expected_hash in expected_files.items():
+        path = (ROOT / relative).resolve()
+        if not path.is_relative_to((ROOT / "data/dev/uieb_c60").resolve()):
+            raise ValueError(f"Unexpected development path: {relative}")
+        if path.exists():
+            verify_frozen_file(path, expected_hash)
+    if all((ROOT / relative).is_file() for relative in expected_files):
+        print(f"Verified {len(expected_files)} frozen development images.", flush=True)
+        return
     tar = shutil.which("tar")
     if tar is None:
         raise RuntimeError("A bsdtar executable is needed to read the official UIEB RAR archive.")
     archive = ROOT / ".cache/downloads/uieb_challenging_60.rar"
     download(drive_url(C60_ID), archive, binary=True)
+    verify_frozen_file(archive, manifest["archive_sha256"])
     listing = subprocess.run([tar, "-tf", str(archive)], check=True, capture_output=True)
     members = []
     for name in listing.stdout.decode("utf-8").splitlines():
@@ -133,14 +148,11 @@ def prepare_samples(count: int, seed: int) -> None:
     if not 1 <= count <= len(members):
         raise ValueError(f"Sample count must be between 1 and {len(members)}.")
     selected = sorted(random.Random(seed).sample(members, count))
-    sample_dir = ROOT / "data/dev/uieb_c60"
+    selected_names = {PurePosixPath(name.replace("\\", "/")).name for name in selected}
+    selected_paths = {f"data/dev/uieb_c60/{name}" for name in selected_names}
+    if selected_paths != set(expected_files):
+        raise ValueError("Archive selection differs from the frozen development files.")
     sample_dir.mkdir(parents=True, exist_ok=True)
-    if any(sample_dir.iterdir()):
-        expected_names = {PurePosixPath(name.replace("\\", "/")).name for name in selected}
-        existing_names = {path.name for path in sample_dir.iterdir() if path.is_file()}
-        if existing_names - expected_names:
-            raise RuntimeError("The sample folder contains other files; use a fresh folder before changing the sample selection.")
-    records = []
     unrar = prepare_unrar(tar)
     for name in selected:
         basename = PurePosixPath(name.replace("\\", "/")).name
@@ -154,21 +166,11 @@ def prepare_samples(count: int, seed: int) -> None:
             content = result.stdout
             if not content:
                 raise RuntimeError(f"Empty archive member: {name}")
+            if hashlib.sha256(content).hexdigest() != expected_files[path.relative_to(ROOT).as_posix()]:
+                raise ValueError(f"Archive member SHA-256 mismatch: {name}")
             path.write_bytes(content)
+        verify_frozen_file(path, expected_files[path.relative_to(ROOT).as_posix()])
         print(f"Dev sample: {path.name}", flush=True)
-        records.append({"path": path.relative_to(ROOT).as_posix(), "archive_member": name, "sha256": sha256(path)})
-    write_json(ROOT / "data/dev_manifest.json", {
-        "dataset": "UIEB Challenging-60",
-        "source_page": UIEB_PAGE,
-        "official_archive": f"https://drive.google.com/file/d/{C60_ID}/view",
-        "archive_password_source": UIEB_PAGE,
-        "archive_sha256": sha256(archive),
-        "purpose": "Development and qualitative inspection; these selected images are not an untouched final test set.",
-        "reference_images": False,
-        "selection": {"method": "seeded random sample of sorted archive image members", "seed": seed, "count": count},
-        "usage": "Academic, non-commercial use; dataset redistribution is prohibited by its official source.",
-        "files": records,
-    })
 
 
 def prepare_unrar(tar: str) -> Path:
@@ -197,13 +199,16 @@ def prepare_unrar(tar: str) -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--count", type=int, default=10)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--count", type=int, default=10, help="Frozen development sample count (10).")
+    parser.add_argument("--seed", type=int, default=42, help="Frozen development selection seed (42).")
     parser.add_argument("--model-only", action="store_true")
     args = parser.parse_args()
-    prepare_model()
-    if not args.model_only:
-        prepare_samples(args.count, args.seed)
+    try:
+        prepare_model()
+        if not args.model_only:
+            prepare_samples(args.count, args.seed)
+    except (OSError, ValueError, RuntimeError, KeyError, subprocess.CalledProcessError) as error:
+        parser.exit(1, f"Asset preparation failed: {error}\n")
     print("Official assets are ready.", flush=True)
 
 

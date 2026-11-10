@@ -201,6 +201,12 @@ def main() -> int:
         parser.error("--max-side must be 0 or positive.")
     if len({path.stem.casefold() for path in images}) != len(images):
         parser.error("Input filenames have duplicate stems; use unique names to avoid output collisions.")
+    output_dir = args.output or ROOT / "outputs" / datetime.now(timezone.utc).strftime("run_%Y%m%d_%H%M%S_%f_UTC")
+    output_dir = output_dir.resolve()
+    # A run owns its complete directory. Reusing it can silently mix old images,
+    # coefficient maps, and summaries with a different method or input batch.
+    if output_dir.exists() and (not output_dir.is_dir() or any(output_dir.iterdir())):
+        parser.error(f"Output must be a new or empty directory: {output_dir}. Choose a different --output folder.")
     enhancer = None
     if args.method == "traditional":
         if args.device == "cuda":
@@ -223,8 +229,6 @@ def main() -> int:
     method_label = "WWE-UIE + pixel limit only" if args.no_smoothing else METHOD_LABELS[args.method]
     print(f"Device: {device} / {device_name}; method: {method_label}", flush=True)
 
-    output_dir = args.output or ROOT / "outputs" / datetime.now(timezone.utc).strftime("run_%Y%m%d_%H%M%S_UTC")
-    output_dir = output_dir.resolve()
     for folder in (output_dir / "enhanced", output_dir / "comparisons"):
         folder.mkdir(parents=True, exist_ok=True)
     if args.method == "local":
